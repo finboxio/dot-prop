@@ -4,6 +4,8 @@ import dotProp from './';
 test(function getter(t) {
 	let f1 = {foo: {bar: 1}};
 	t.is(dotProp.get(f1), f1);
+	f1[''] = 'foo';
+	t.is(dotProp.get(f1, ''), f1['']);
 	t.is(dotProp.get(f1, 'foo'), f1.foo);
 	t.is(dotProp.get({foo: 1}, 'foo'), 1);
 	t.is(dotProp.get({foo: null}, 'foo'), null);
@@ -11,6 +13,7 @@ test(function getter(t) {
 	t.is(dotProp.get({foo: {bar: true}}, 'foo.bar'), true);
 	t.is(dotProp.get({foo: {bar: {baz: true}}}, 'foo.bar.baz'), true);
 	t.is(dotProp.get({foo: {bar: {baz: null}}}, 'foo.bar.baz'), null);
+	t.is(dotProp.get({foo: {bar: 'a'}}, 'foo.fake'), undefined);
 	t.is(dotProp.get({foo: {bar: 'a'}}, 'foo.fake.fake2'), undefined);
 
 	function fn() {}
@@ -18,6 +21,16 @@ test(function getter(t) {
 	t.is(dotProp.get(fn), fn);
 	t.is(dotProp.get(fn, 'foo'), fn.foo);
 	t.is(dotProp.get(fn, 'foo.bar'), 1);
+
+	let f2 = {foo: null};
+	t.is(dotProp.get(f2, 'foo.bar'), undefined);
+
+	Object.defineProperty(f2, 'bar', {
+		get() {
+			throw new Error('Cannot get me');
+		}
+	});
+	t.is(dotProp.get(f2, 'bar'), undefined);
 
 	t.is(dotProp.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
 	t.is(dotProp.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
@@ -65,6 +78,40 @@ test(function setter(t) {
 	f1.fn = fn;
 	dotProp.set(f1, 'fn.bar.baz', 2);
 	t.is(f1.fn.bar.baz, 2);
+
+	let f2 = {};
+	Object.defineProperty(f2, 'bar', {
+		configurable: true,
+		get() {},
+		set() {
+			throw new Error('Cannot set me');
+		}
+	});
+	f1.f2 = f2;
+	dotProp.set(f2, 'bar', 2);
+	dotProp.set(f2, 'bar.baz', 2);
+	dotProp.set(f2.bar, '', 2);
+	dotProp.set(f2.bar, 'baz', 2);
+	dotProp.set(f1, 'f2.bar', 2);
+	dotProp.set(f1, 'f2.bar.baz', 2);
+
+	Object.defineProperty(f2, 'bar', {
+		set() {
+			throw new Error('Cannot set me');
+		},
+		get() {
+			throw new Error('Cannot get me');
+		}
+	});
+	f1.f2 = f2;
+	dotProp.set(f2, 'bar', 2);
+	dotProp.set(f2, 'bar.baz', 2);
+	dotProp.set(f1, 'f2.bar', 2);
+	dotProp.set(f1, 'f2.bar.baz', 2);
+
+	let f3 = {};
+	dotProp.set(f3, '', 3);
+	t.is(f3[''], 3);
 
 	dotProp.set(f1, 'foo\\.bar.baz', true);
 	t.is(f1['foo.bar'].baz, true);

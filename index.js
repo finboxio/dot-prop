@@ -16,7 +16,11 @@ module.exports.get = function (obj, path) {
 			p += pathArr[++i];
 		}
 
-		obj = obj[p];
+		try {
+			obj = obj[p];
+		} catch (err) {
+			return undefined;
+		}
 
 		if (obj === undefined) {
 			break;
@@ -27,7 +31,7 @@ module.exports.get = function (obj, path) {
 };
 
 module.exports.set = function (obj, path, value) {
-	if (!isObj(obj) || typeof path !== 'string') {
+	if (typeof path !== 'string') {
 		return;
 	}
 
@@ -41,12 +45,25 @@ module.exports.set = function (obj, path, value) {
 			p += pathArr[++i];
 		}
 
-		if (!isObj(obj[p])) {
-			obj[p] = {};
+		var childProp;
+		try {
+			childProp = obj[p];
+		} catch (err) {
+			break;
+		}
+
+		if (!isObj(childProp)) {
+			try {
+				obj[p] = {};
+			} catch (err) {
+				break;
+			}
 		}
 
 		if (i === pathArr.length - 1) {
-			obj[p] = value;
+			try {
+				obj[p] = value;
+			} catch (err) {}
 		}
 
 		obj = obj[p];
