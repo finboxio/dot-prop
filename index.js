@@ -12,6 +12,9 @@ module.exports.get = function (obj, path) {
     obj = obj[pathArr[i]]
 
     if (!obj) {
+      if ((i + 1) !== pathArr.length) {
+        obj = undefined
+      }
       break
     }
   }
