@@ -1,6 +1,7 @@
 # dot-prop [![Build Status](https://travis-ci.org/sindresorhus/dot-prop.svg?branch=master)](https://travis-ci.org/sindresorhus/dot-prop)
 
 > Get, set, or delete a property from a nested object using a dot path
+> MAIN DIFFERENCE FROM sindresorhus/dot-prop is that it will not throw errors when you do get({ a: null }, 'a.b.c')
 
 
 ## Install
